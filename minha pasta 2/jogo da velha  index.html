@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #board {
+            display: grid;
+            grid-template-columns: 60px 60px 60px;
+            gap: 10px;
+        }
+        .cell {
+            width: 60px;
+            height: 60px;
+            border: 1px solid;
+            text-align: center;
+            line-height: 60px;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="board"></div>
+    <button onclick="reset()">Reset</button>
+    <p id="message"></p>
+
+    <script>
+        var board = Array(9).fill(null)
+        var currentPlayer = 'X'
+        var gameOver = false
+
+        function checkWin() {
+            var lines = [
+                [0, 1, 2],
+                [3, 4, 5],
+                [6, 7, 8],
+                [0, 3, 6],
+                [1, 4, 7],
+                [2, 5, 8],
+                [0, 4, 8],
+                [2, 4, 6]
+            ]
+            for (var line of lines) {
+                if (board[line[0]] && board[line[0]] === board[line[1]] && board[line[0]] === board[line[2]]) {
+                    return board[line[0]]
+                }
+            }
+            return false
+        }
+
+        function handleClick(index) {
+            if (gameOver || board[index]) {
+                return
+            }
+            board[index] = currentPlayer
+            document.getElementById(index).innerText = currentPlayer
+            var winner = checkWin()
+            if (winner) {
+                document.getElementById('message').innerText = 'Jogador ' + winner + ' ganhou!'
+                gameOver = true
+            } else if (!board.includes(null)) {
+                document.getElementById('message').innerText = 'Empate!'
+                gameOver = true
+            } else {
+                currentPlayer = currentPlayer === 'X' ? 'O' : 'X'
+            }
+        }
+
+        function reset() {
+            board = Array(9).fill(null)
+            currentPlayer = 'X'
+            gameOver = false
+            for (var i = 0; i < 9; i++) {
+                document.getElementById(i).innerText = ''
+            }
+            document.getElementById('message').innerText = ''
+        }
+
+        window.onload = function() {
+            var gameBoard = document.getElementById('board')
+            for (var i = 0; i < 9; i++) {
+                var cell = document.createElement('div')
+                cell.classList.add('cell')
+                cell.id = i
+                cell.onclick = function() { handleClick(this.id) }
+                gameBoard.appendChild(cell)
+            }
+        }
+    </script>
+</body>
+</html>
