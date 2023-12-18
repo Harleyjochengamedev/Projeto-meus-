@@ -12,15 +12,12 @@ header input{
   margin-top: 30px;
   margin-left: 150px;
 }
-/*pq quando põe os margin left e right ele muda de cor??*/
+
 header {
   background-color: #333;
   color: white;
   padding: 16px;
   overflow: hidden;
-  /*
-  margin-left: 250px;
-  margin-right: 250px;*/
 }
 
 .carrinho{
@@ -98,6 +95,7 @@ nav a {
   color: white;
   padding: 1em;
   box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 .produto img{
@@ -109,6 +107,22 @@ nav a {
   font-size: 16px;
 }
 
+.produto h5{
+  color: orange;
+
+}
+
+.produto h4{
+  color: red;
+  margin-left: 8px;
+  display: inline;
+}
+
+.produto p{
+  color: slategray;
+  font-weight: bold;
+  display: inline;
+}
 .produto button{
   border: solid 1px green;
   border-radius: 20px;
@@ -126,9 +140,10 @@ nav a {
   transition: background-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
 }
 
-.produto h5{
-  color: lightgray;
-
+.produto .logoempresa{
+  width: 55px;
+  height: auto;
+  float: right;
 }
 
 footer {
@@ -136,7 +151,7 @@ footer {
   color: white;
   text-align: center;
   padding: 16px 0;
-  
+  height: 300px;
 }
 
 footer a{
