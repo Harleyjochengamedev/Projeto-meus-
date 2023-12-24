@@ -1,0 +1,148 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: gray;
+}
+header input{
+  float: left;
+  border-radius: 10px;
+  padding: 11px 200px 11px 200px;
+  border: none;
+  margin-top: 30px;
+  margin-left: 150px;
+}
+/*pq quando põe os margin left e right ele muda de cor??*/
+header {
+  background-color: #333;
+  color: white;
+  padding: 16px;
+  overflow: hidden;
+  /*
+  margin-left: 250px;
+  margin-right: 250px;*/
+}
+
+.carrinho{
+  width: 50px;
+  height: auto;
+  float: left;
+  margin-top: 20px;
+  margin-left: 300px;
+}
+
+.carrinho:hover{
+  width: 50px;
+  height: auto;
+  float: left;
+  margin-top: 20px;
+  filter: brightness(1.2);
+}
+
+.user{
+  width: 50px;
+  height: auto;
+  margin-top: 20px;
+  margin-left: 15px;
+}
+
+.user:hover{
+  width: 50px;
+  height: auto;
+  margin-top: 20px;
+  filter: invert(1);
+}
+
+.logo {
+  width: 115px;
+  height: auto;
+  margin-right: 100px;
+  float: left;
+  border-radius: 40px;
+  margin-left: 30px;
+}
+
+.comida{
+  margin-left: 250px;
+  width: 50px;
+  float: left;
+  height: auto;
+  margin-top: 25px;
+  padding-right: 10px;
+}
+
+nav {
+  background-color: #444;
+  padding: 16px;
+  text-align: center;
+}
+
+nav a {
+  color: white;
+  text-decoration: none;
+  padding: 1em;
+  margin: 0 1em;
+}
+
+.container {
+  width: 80%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.produto {
+  width: 30%;
+  float: left;
+  margin: 1.5%;
+  background-color: black;
+  color: white;
+  padding: 1em;
+  box-sizing: border-box;
+}
+
+.produto img{
+  width: 200px;
+  height: auto;
+}
+
+.produto h2{
+  font-size: 16px;
+}
+
+.produto button{
+  border: solid 1px green;
+  border-radius: 20px;
+  color: green;
+  background-color: white;
+  transition: background-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
+
+}
+
+.produto button:hover{
+  border: solid 1px white;
+  border-radius: 20px;
+  color: white;
+  background-color: green;
+  transition: background-color 0.5s ease, color 0.5s ease, transform 0.5s ease;
+}
+
+.produto h5{
+  color: lightgray;
+
+}
+
+footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 16px 0;
+  
+}
+
+footer a{
+  text-decoration: none;
+  color: white;
+}
+footer p{
+  display: inline;
+}

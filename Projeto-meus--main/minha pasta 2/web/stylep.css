@@ -1,0 +1,38 @@
+body{
+  background-color: white;
+
+}
+
+#container {
+    display: flex;
+    justify-content: center;align-items: center;
+    flex-wrap:wrap;
+    max-width: 600px;
+}
+h1{color: blue;}
+#windows1{
+    height: 200px; ;
+    width: 200px; ;
+    margin: 20px; ;
+    background-color: blue;
+}
+
+#windows2{
+    height: 200px; ;
+    width: 200px; ;
+    margin-left: 20px;
+    background-color: blue;
+}
+
+#windows3{
+    height: 200px; ;
+    width: 200px; ;
+    margin-left: 20px;
+    background-color: blue;
+}
+#windows4{
+    height: 200px; ;
+    width: 200px; ;
+    margin-left: 20px;
+    background-color: blue;
+}

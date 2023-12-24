@@ -1,0 +1,58 @@
+.clip-tree {
+    position: relative;
+    margin-top: 20px;
+  }
+  
+  .clip-tree .layer {
+    position: absolute;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: green;
+    clip-path: polygon(50% 5%, 100% 85%, 100% 100%, 0 100%, 0 85%);
+  }
+  
+  .clip-tree .shadow {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: black;
+    clip-path: polygon(50% 0%, 0% 110%, 95% 100%);
+    margin-top: 20px;
+    margin-left: 10px;
+  }
+  
+  .clip-tree div:nth-child(1) {
+    transform: translateY(5px);
+    z-index: 3;
+  }
+  
+  .clip-tree div:nth-child(2) {
+    transform: translateY(0);
+    z-index: 3;
+  }
+  
+  .clip-tree div:nth-child(3) {
+    transform: translateY(40px);
+    z-index: 2;
+  }
+  
+  .clip-tree div:nth-child(4) {
+    transform: translateY(35px);
+    z-index: 2;
+  }
+  
+  .clip-tree div:nth-child(5) {
+    transform: translateY(70px);
+    z-index: 1;
+  }
+  
+  .clip-tree:before {
+    content: '🌟';
+    position: absolute;
+    left: 42px;
+    z-index: 10;
+    top: -9px;
+  }
+  

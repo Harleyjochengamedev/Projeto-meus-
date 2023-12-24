@@ -1,0 +1,21 @@
+body{
+  background-image:url(https://www.cgspectrum.com/hs-fs/hubfs/level-designer-header-01.jpg?width=1440&name=level-designer-header-01.jpg);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-position: absolute;
+}
+#principal{
+  width: 800px;
+  height: 800px;
+  background-color: blue;
+}
+.circulo{
+  width: 200px;
+  height: 200px;
+  background-color: black;
+  float: left;
+  margin: 300px;
+  border-radius: 100%;
+  
+}
