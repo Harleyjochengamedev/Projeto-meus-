@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dias até o Ano Novo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="countdown"></h1>
+
+    <script>
+        function updateCountdown() {
+            var now = new Date();
+            var nextYear = new Date(now.getFullYear() + 1, 0, 1);
+            var oneDay = 24*60*60*1000; // horas*minutos*segundos*milliseconds
+            var diffDays = Math.round(Math.abs((now - nextYear)/(oneDay)));
+            document.getElementById('countdown').innerHTML = "Faltam " + diffDays + " dias para o Ano Novo!";
+        }
+        updateCountdown();
+        setInterval(updateCountdown, 1000 * 60 * 60 * 24); // atualiza a contagem regressiva uma vez por dia
+    </script>
+</body>
+</html>

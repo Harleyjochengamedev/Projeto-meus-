@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Feliz Natal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color:red;
+            padding-top: 50px;
+        }
+        .christmas-text {
+            color: whitesmoke;
+            font-size: 50px;
+            text-shadow: 3px 3px 3px #999;
+        }
+        .snowflake {
+            position: fixed;
+            background: #FFF;
+            z-index: 9999;
+            pointer-events: none;
+            border-radius: 50%;
+            animation: snowfall 10s linear infinite;
+        }
+        @keyframes snowfall {
+            0% {transform: translateY(-2000px);}
+            100% {transform: translateY(2000px);}
+        }
+    </style>
+</head>
+<body>
+    <h1 class="christmas-text">Feliz Natal!</h1>
+    <div class="snowflake" style="width: 5px; height: 5px; left: 10%; animation-delay: 1s;"></div>
+    <div class="snowflake" style="width: 10px; height: 10px; left: 20%; animation-delay: 2s;"></div>
+    <div class="snowflake" style="width: 7px; height: 7px; left: 30%; animation-delay: 3s;"></div>
+    <!-- Adicione mais flocos de neve conforme necessário -->
+</body>
+</html>

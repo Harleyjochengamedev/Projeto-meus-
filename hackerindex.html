@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2em;
+        }
+        #terminal {
+            white-space: pre;
+            line-height: 1.6em;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+    <script>
+        var terminal = document.getElementById('terminal');
+        var lines = [
+            '> Iniciando sequência de hacking...',
+            '> Acessando banco de dados secreto...',
+            '> Download de arquivos confidenciais...',
+            '> Hacking bem-sucedido!'
+        ];
+        var i = 0;
+        function typeLine() {
+            if (i < lines.length) {
+                terminal.innerHTML += lines[i] + '<br>';
+                i++;
+                setTimeout(typeLine, 1000);
+            }
+        }
+        typeLine();
+    </script>
+</body>
+</html>

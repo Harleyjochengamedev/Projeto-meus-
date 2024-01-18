@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            background-color: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            font-size: 2em; /* Aumenta o tamanho da fonte */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        #login-form {
+            display: flex;
+            flex-direction: column;
+            width: 200px;
+        }
+        #login-form input {
+            margin-bottom: 10px;
+            background-color: #000;
+            border: none;
+            border-bottom: 1px solid #0f0;
+            color: #0f0;
+            outline: none;
+        }
+        #login-form button {
+            background-color: #000;
+            color: #0f0;
+            border: 1px solid #0f0;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <form id="login-form">
+        <input type="password" placeholder="Digite aqui" required>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

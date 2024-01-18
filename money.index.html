@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        #contador {
+            font-size: 3em;
+        }
+    </style>
+</head>
+<body>
+    <div id="contador">R$ 0</div>
+
+    <script>
+        let contador = 0;
+        setInterval(() => {
+            contador++;
+            document.getElementById('contador').innerText = 'R$ ' + contador;
+        }, 1000);
+    </script>
+</body>
+</html>
