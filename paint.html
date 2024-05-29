@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paint-StackFlow</title>
+</head>
+<body>
+    <canvas id="myCanvas" width="400" height="400"></canvas>
+
+<script>
+  const canvas = document.getElementById('myCanvas');
+  const ctx = canvas.getContext('2d');
+
+  // Definir as ferramentas
+  const tools = {
+    draw: {
+      x: 0,
+      y: 0,
+      color: 'black'
+    },
+    fill: {
+      color: 'red'
+    }
+  };
+
+  // Implementar as ferramentas
+  function draw(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 5, 0, 2 * Math.PI);
+    ctx.fillStyle = tools.draw.color;
+    ctx.fill();
+  }
+
+  function fill() {
+    ctx.fillStyle = tools.fill.color;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // Adicionar eventos
+  canvas.addEventListener('mousedown', (e) => {
+    tools.draw.x = e.clientX;
+    tools.draw.y = e.clientY;
+  });
+
+  canvas.addEventListener('mousemove', (e) => {
+    draw(e.clientX, e.clientY);
+  });
+
+  canvas.addEventListener('mouseup', () => {
+    fill();
+  });
+</script>
+</body>
+</html>
