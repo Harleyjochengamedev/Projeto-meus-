@@ -173,6 +173,11 @@ def calculate_compatibility_score(user1: User, user2: User) -> tuple[float, List
     
     return round(score, 1), reasons
 
+# Health Check
+@api_router.get("/")
+async def root():
+    return {"message": "PlayMatch API", "status": "online"}
+
 # Auth Routes
 @api_router.get("/auth/google")
 async def auth_google(redirect_url: str):
