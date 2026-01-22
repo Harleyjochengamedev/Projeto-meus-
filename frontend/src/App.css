@@ -1,34 +1,64 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+.App {
+  min-height: 100vh;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+.gradient-glow {
+  background: linear-gradient(to bottom, hsl(var(--primary) / 0.2), transparent);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.match-card {
+  position: relative;
+  overflow: hidden;
 }
 
-.App-link {
-    color: #61dafb;
+.match-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.glass-effect {
+  backdrop-filter: blur(24px);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+button {
+  transition: transform 0.15s ease-out, box-shadow 0.3s ease-out;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+.schedule-slot {
+  transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
+}
+
+.schedule-slot:hover {
+  background-color: rgba(124, 77, 255, 0.1);
+  border-color: rgba(124, 77, 255, 0.3);
+}
+
+.schedule-slot.selected {
+  background-color: rgba(124, 77, 255, 0.2);
+  border-color: rgba(124, 77, 255, 0.5);
 }
