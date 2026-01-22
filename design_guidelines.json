@@ -1,0 +1,158 @@
+{
+  "identity": {
+    "name": "PlayMatch",
+    "persona": "E1: The Anti-AI Designer",
+    "archetype": "Electric & Neon (Grounded)",
+    "tone": "Energetic, Trustworthy, Inclusive, Non-Toxic"
+  },
+  "typography": {
+    "font_family": {
+      "headings": "Outfit, sans-serif",
+      "body": "Manrope, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "weights": {
+      "headings": "700 (Bold) or 300 (Light) - High Contrast",
+      "body": "400 (Regular), 500 (Medium)"
+    },
+    "tracking": {
+      "headings": "-0.02em (tight)",
+      "overline": "0.2em (wide)"
+    },
+    "installation": "Import from Google Fonts: https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&family=Outfit:wght@300;700;900&display=swap"
+  },
+  "colors": {
+    "palette": {
+      "background": {
+        "hex": "#0F0F14",
+        "hsl": "240 14% 7%",
+        "usage": "Main app background. Deep Graphite."
+      },
+      "surface": {
+        "hex": "#18181B",
+        "hsl": "240 6% 10%",
+        "usage": "Cards, Sidebars. Slightly lighter than bg."
+      },
+      "primary": {
+        "hex": "#7C4DFF",
+        "hsl": "256 100% 65%",
+        "usage": "Primary Actions, Brand Identity. Neon Purple."
+      },
+      "secondary": {
+        "hex": "#00E676",
+        "hsl": "151 100% 45%",
+        "usage": "Success, High Match Score. Neon Green."
+      },
+      "accent": {
+        "hex": "#FF5252",
+        "hsl": "0 100% 66%",
+        "usage": "Skip, Busy, Alerts. Soft Red."
+      },
+      "muted": {
+        "hex": "#B0BEC5",
+        "hsl": "200 18% 73%",
+        "usage": "Secondary text, borders. Blue-ish Grey."
+      }
+    },
+    "tailwind_config": {
+      "css_variables": {
+        "--background": "240 14% 7%",
+        "--foreground": "200 18% 73%",
+        "--card": "240 6% 10%",
+        "--card-foreground": "200 18% 73%",
+        "--popover": "240 14% 7%",
+        "--popover-foreground": "200 18% 73%",
+        "--primary": "256 100% 65%",
+        "--primary-foreground": "0 0% 100%",
+        "--secondary": "151 100% 45%",
+        "--secondary-foreground": "240 14% 7%",
+        "--muted": "240 6% 15%",
+        "--muted-foreground": "240 5% 60%",
+        "--accent": "240 6% 15%",
+        "--accent-foreground": "256 100% 65%",
+        "--destructive": "0 100% 66%",
+        "--destructive-foreground": "0 0% 100%",
+        "--border": "240 6% 20%",
+        "--input": "240 6% 20%",
+        "--ring": "256 100% 65%"
+      }
+    }
+  },
+  "visual_enhancers": {
+    "glassmorphism": {
+      "style": "backdrop-blur-xl bg-black/40 border border-white/10",
+      "usage": "Sticky headers, floating action bars, modal overlays."
+    },
+    "tracing_beam": {
+      "style": "relative overflow-hidden rounded-xl border border-white/10 before:absolute before:inset-0 before:-translate-x-full before:animate-[shimmer_2s_infinite] before:bg-gradient-to-r before:from-transparent before:via-white/10 before:to-transparent",
+      "usage": "Matchmaking cards, Featured profiles."
+    },
+    "gradients": {
+      "glow": "bg-gradient-to-b from-primary/20 to-transparent",
+      "usage": "Behind hero images, subtle glow on active cards."
+    }
+  },
+  "layout_strategies": {
+    "landing_page": {
+      "grid": "Tetris Grid (Mode A)",
+      "spacing": "Gap-8 to Gap-12",
+      "rules": "Asymmetry is key. Do not center everything. Use negative space."
+    },
+    "dashboard": {
+      "grid": "High Density Grid (Mode B)",
+      "spacing": "Gap-4",
+      "rules": "100% width utilization. No jagged bottoms. Dense information."
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white hover:bg-primary/90 shadow-[0_0_20px_-5px_rgba(124,77,255,0.5)] transition-all hover:scale-105 active:scale-95",
+      "secondary": "bg-secondary/10 text-secondary hover:bg-secondary/20 border border-secondary/20",
+      "ghost": "hover:bg-white/5 text-muted-foreground hover:text-white"
+    },
+    "cards": {
+      "match_card": "bg-card border border-border/50 hover:border-primary/50 transition-colors group relative overflow-hidden",
+      "profile_stat": "bg-white/5 border border-white/5 rounded-lg p-4"
+    },
+    "inputs": {
+      "style": "bg-white/5 border-white/10 focus:border-primary focus:ring-primary/20 rounded-md h-12"
+    }
+  },
+  "image_urls": {
+    "hero": {
+      "url": "https://images.unsplash.com/photo-1758525862828-556189f5285a?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwyfHxkaXZlcnNlJTIwZ2FtZXJzJTIwcGxheWluZyUyMHRvZ2V0aGVyJTIwaGFwcHl8ZW58MHx8fHwxNzY5MDkwNDQxfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Two happy friends playing video games on a couch",
+      "usage": "Hero section main visual"
+    },
+    "community": {
+      "url": "https://images.unsplash.com/photo-1714646184215-f7af62f72f80?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1Nzh8MHwxfHNlYXJjaHwxfHxkaXZlcnNlJTIwZ2FtZXJzJTIwcGxheWluZyUyMHRvZ2V0aGVyJTIwaGFwcHl8ZW58MHx8fHwxNzY5MDkwNDQxfDA&ixlib=rb-4.1.0&q=85",
+      "alt": "Diverse gamers playing together",
+      "usage": "Community/Social proof section"
+    },
+    "setup_vibe": {
+      "url": "https://images.unsplash.com/photo-1629148769165-069e8a9e8a30?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxuZW9uJTIwZ2FtaW5nJTIwc2V0dXAlMjBkYXJrJTIwcm9vbXxlbnwwfHx8fDE3NjkwOTA0NDN8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Neon gaming setup",
+      "usage": "Background texture or feature highlight"
+    }
+  },
+  "icons": {
+    "library": "lucide-react",
+    "style": "Stroke width 1.5px for elegance, 2px for active states."
+  },
+  "motion": {
+    "hover": "transition-all duration-300 ease-out",
+    "entrance": "animate-in fade-in slide-in-from-bottom-4 duration-700",
+    "micro_interaction": "active:scale-95"
+  },
+  "accessibility": {
+    "contrast": "Ensure text on primary color is WHITE, not black. Ensure text on neon green is BLACK.",
+    "reduced_motion": "Respect prefers-reduced-motion media query."
+  },
+  "universal_guidelines": [
+    "Do not use gradients for text unless it's a very large headline.",
+    "Avoid 'Inter' font for headings. Use 'Outfit'.",
+    "Dark mode is the default. Do not implement a light mode toggle unless explicitly asked.",
+    "Use 'sonner' for toasts.",
+    "All interactive elements must have data-testid attributes."
+  ]
+}
