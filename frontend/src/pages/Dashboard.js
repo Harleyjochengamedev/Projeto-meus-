@@ -1,15 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { axiosInstance } from '../App';
-import { Button } from '../components/ui/button';
 import { Card } from '../components/ui/card';
+import { Button } from '../components/ui/button';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
-import { Gamepad2, Users, Clock, Settings, LogOut, Sparkles } from 'lucide-react';
+import { Badge } from '../components/ui/badge';
+import { Clock, CheckCircle2, Timer as TimerIcon, Target, Plus, TrendingUp, Code2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Dashboard = () => {
   const [user, setUser] = useState(null);
-  const [matches, setMatches] = useState([]);
+  const [overview, setOverview] = useState(null);
+  const [recentTasks, setRecentTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
@@ -19,12 +21,14 @@ const Dashboard = () => {
 
   const loadData = async () => {
     try {
-      const [userRes, matchesRes] = await Promise.all([
+      const [userRes, overviewRes, tasksRes] = await Promise.all([
         axiosInstance.get('/auth/me'),
-        axiosInstance.get('/matches?limit=5')
+        axiosInstance.get('/dashboard/overview'),
+        axiosInstance.get('/tasks?status=todo&status=in_progress')
       ]);
       setUser(userRes.data);
-      setMatches(matchesRes.data);
+      setOverview(overviewRes.data);
+      setRecentTasks(tasksRes.data.slice(0, 5));
     } catch (error) {
       console.error('Error loading data:', error);
       toast.error('Erro ao carregar dados');
@@ -33,14 +37,15 @@ const Dashboard = () => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await axiosInstance.post('/auth/logout');
-      toast.success('Logout realizado');
-      navigate('/', { replace: true });
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const getCategoryColor = (category) => {
+    const colors = {
+      task: 'bg-primary/10 text-primary border-primary/30',
+      study: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30',
+      pr: 'bg-purple-500/10 text-purple-500 border-purple-500/30',
+      bug: 'bg-destructive/10 text-destructive border-destructive/30',
+      project: 'bg-accent/10 text-accent border-accent/30'
+    };
+    return colors[category] || colors.task;
   };
 
   if (loading) {
@@ -51,177 +56,174 @@ const Dashboard = () => {
     );
   }
 
-  const needsProfile = !user?.gaming_profile;
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24 md:pb-8">
       {/* Header */}
-      <header className="border-b border-border bg-card/50 backdrop-blur-xl sticky top-0 z-50">
+      <header className="glass-effect sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Gamepad2 className="w-8 h-8 text-primary" />
-            <h1 className="text-2xl font-bold text-white">PlayMatch</h1>
+            <Code2 className="w-7 h-7 text-primary" strokeWidth={2} />
+            <h1 className="text-xl font-bold text-white">DevFlow</h1>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Button
-              data-testid="profile-nav-button"
-              variant="ghost"
-              onClick={() => navigate('/profile')}
-              className="text-muted-foreground hover:text-white"
-            >
-              <Settings className="w-5 h-5 mr-2" />
-              Perfil
-            </Button>
-            <Button
-              data-testid="logout-button"
-              variant="ghost"
-              onClick={handleLogout}
-              className="text-muted-foreground hover:text-destructive"
-            >
-              <LogOut className="w-5 h-5" />
-            </Button>
-            <Avatar className="w-10 h-10 border-2 border-primary">
-              <AvatarImage src={user?.picture} alt={user?.name} />
-              <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
-            </Avatar>
-          </div>
+          <Avatar className="w-9 h-9 border-2 border-primary/30">
+            <AvatarImage src={user?.picture} alt={user?.name} />
+            <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
+          </Avatar>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-        {/* Welcome Section */}
+      <main className="max-w-7xl mx-auto px-4 py-6 space-y-6">
+        {/* Welcome */}
+        <div className="space-y-2">
+          <h2 className="text-2xl md:text-3xl font-bold text-white">Olá, {user?.name?.split(' ')[0]}!</h2>
+          <p className="text-muted-foreground">Aqui está seu overview de hoje</p>
+        </div>
+
+        {/* Stats Grid - Bento Style */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card className="bg-card border-border p-6 grid-border" data-testid="tasks-today-card">
+            <div className="space-y-2">
+              <Target className="w-8 h-8 text-primary" strokeWidth={2} />
+              <div>
+                <p className="text-2xl md:text-3xl font-bold text-white font-mono">
+                  {overview?.tasks_today || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Tasks Ativas</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-card border-border p-6 grid-border" data-testid="completed-today-card">
+            <div className="space-y-2">
+              <CheckCircle2 className="w-8 h-8 text-emerald-500" strokeWidth={2} />
+              <div>
+                <p className="text-2xl md:text-3xl font-bold text-white font-mono">
+                  {overview?.tasks_completed_today || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Concluídas Hoje</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-card border-border p-6 grid-border" data-testid="time-today-card">
+            <div className="space-y-2">
+              <Clock className="w-8 h-8 text-accent" strokeWidth={2} />
+              <div>
+                <p className="text-2xl md:text-3xl font-bold text-white font-mono">
+                  {overview?.total_time_today || 0}m
+                </p>
+                <p className="text-xs text-muted-foreground">Tempo Hoje</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="bg-card border-border p-6 grid-border" data-testid="sprints-active-card">
+            <div className="space-y-2">
+              <TrendingUp className="w-8 h-8 text-primary" strokeWidth={2} />
+              <div>
+                <p className="text-2xl md:text-3xl font-bold text-white font-mono">
+                  {overview?.active_sprints || 0}
+                </p>
+                <p className="text-xs text-muted-foreground">Sprints Ativos</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <Button
+            data-testid="new-task-button"
+            onClick={() => navigate('/tasks')}
+            className="bg-primary text-white hover:bg-primary/90 h-auto py-4"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Nova Task
+          </Button>
+          <Button
+            data-testid="start-timer-button"
+            onClick={() => navigate('/timer')}
+            variant="outline"
+            className="border-accent/30 text-accent hover:bg-accent/10 h-auto py-4"
+          >
+            <TimerIcon className="w-5 h-5 mr-2" />
+            Iniciar Timer
+          </Button>
+          <Button
+            data-testid="new-sprint-button"
+            onClick={() => navigate('/sprints')}
+            variant="outline"
+            className="border-border hover:bg-card h-auto py-4 col-span-2 md:col-span-1"
+          >
+            <Target className="w-5 h-5 mr-2" />
+            Novo Sprint
+          </Button>
+        </div>
+
+        {/* Recent Tasks */}
         <div className="space-y-4">
-          <h2 className="text-3xl font-bold text-white">Bem-vindo, {user?.name}!</h2>
-          <p className="text-muted-foreground">Encontre jogadores compatíveis com seu estilo</p>
-        </div>
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-bold text-white">Tasks Recentes</h3>
+            <Button
+              data-testid="view-all-tasks-button"
+              variant="ghost"
+              onClick={() => navigate('/tasks')}
+              className="text-primary hover:text-primary/90"
+            >
+              Ver Todas
+            </Button>
+          </div>
 
-        {/* Profile Setup CTA */}
-        {needsProfile && (
-          <Card className="bg-gradient-to-r from-primary/20 to-secondary/20 border-primary/30 p-8" data-testid="setup-profile-card">
-            <div className="flex items-start gap-6">
-              <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-6 h-6 text-primary" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-xl font-bold text-white mb-2">Complete seu perfil!</h3>
-                <p className="text-muted-foreground mb-4">
-                  Para começar a fazer match, precisamos saber mais sobre seu estilo de jogo,
-                  horários e preferências.
-                </p>
-                <Button
-                  data-testid="complete-profile-button"
-                  onClick={() => navigate('/profile')}
-                  className="bg-primary text-white hover:bg-primary/90"
-                >
-                  Configurar Perfil
-                </Button>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* Quick Stats */}
-        <div className="grid md:grid-cols-3 gap-6">
-          <Card className="bg-card border-border/50 p-6" data-testid="matches-stat-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Users className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Matches Disponíveis</p>
-                <p className="text-2xl font-bold text-white">{matches.length}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-card border-border/50 p-6" data-testid="schedule-stat-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-secondary/10 flex items-center justify-center">
-                <Clock className="w-6 h-6 text-secondary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Horários Configurados</p>
-                <p className="text-2xl font-bold text-white">
-                  {Object.keys(user?.availability_schedule || {}).length}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="bg-card border-border/50 p-6" data-testid="style-stat-card">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Gamepad2 className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Estilo de Jogo</p>
-                <p className="text-2xl font-bold text-white">
-                  {user?.gaming_profile?.style || 'Não definido'}
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Top Matches Preview */}
-        {!needsProfile && matches.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold text-white">Top Matches para Você</h3>
+          {recentTasks.length === 0 ? (
+            <Card className="bg-card border-border p-8 text-center" data-testid="no-tasks-card">
+              <Target className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground">Nenhuma task ativa</p>
               <Button
-                data-testid="view-all-matches-button"
-                variant="ghost"
-                onClick={() => navigate('/matches')}
-                className="text-primary hover:text-primary/90"
+                onClick={() => navigate('/tasks')}
+                className="mt-4 bg-primary text-white"
               >
-                Ver Todos
+                Criar Primeira Task
               </Button>
-            </div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {matches.slice(0, 3).map((match, index) => (
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {recentTasks.map((task, index) => (
                 <Card
-                  key={index}
-                  className="bg-card border-border/50 hover:border-primary/50 transition-all p-6 match-card cursor-pointer"
-                  onClick={() => navigate('/matches')}
-                  data-testid={`match-preview-card-${index}`}
+                  key={task.task_id}
+                  data-testid={`task-card-${index}`}
+                  onClick={() => navigate('/tasks')}
+                  className="bg-card border-border p-4 grid-border hover:border-primary/50 transition-all cursor-pointer"
                 >
-                  <div className="flex items-start gap-4">
-                    <Avatar className="w-14 h-14 border-2 border-primary/30">
-                      <AvatarImage src={match.user.picture} alt={match.user.name} />
-                      <AvatarFallback>{match.user.name[0]}</AvatarFallback>
-                    </Avatar>
+                  <div className="flex items-start gap-3">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-white truncate">{match.user.name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {match.user.gaming_profile?.style}
-                      </p>
-                      <div className="mt-2">
-                        <div className="text-2xl font-bold text-secondary">
-                          {match.compatibility_score}%
-                        </div>
-                        <p className="text-xs text-muted-foreground">compatibilidade</p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className={`${getCategoryColor(task.category)} text-xs font-mono`}>
+                          {task.category}
+                        </Badge>
+                        {task.priority === 'high' && (
+                          <Badge variant="destructive" className="text-xs">Alta</Badge>
+                        )}
                       </div>
+                      <h4 className="font-medium text-white truncate">{task.title}</h4>
+                      {task.description && (
+                        <p className="text-sm text-muted-foreground line-clamp-1 mt-1">
+                          {task.description}
+                        </p>
+                      )}
                     </div>
+                    {task.actual_time > 0 && (
+                      <div className="text-right">
+                        <p className="text-sm font-mono text-accent">{task.actual_time}m</p>
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}
             </div>
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!needsProfile && matches.length === 0 && (
-          <Card className="bg-card border-border/50 p-12 text-center" data-testid="no-matches-card">
-            <Users className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">Nenhum match encontrado</h3>
-            <p className="text-muted-foreground">
-              Aguarde enquanto procuramos jogadores compatíveis com seu perfil
-            </p>
-          </Card>
-        )}
+          )}
+        </div>
       </main>
     </div>
   );
