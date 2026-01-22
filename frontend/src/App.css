@@ -2,63 +2,58 @@
   min-height: 100vh;
 }
 
-.gradient-glow {
-  background: linear-gradient(to bottom, hsl(var(--primary) / 0.2), transparent);
-}
-
-.match-card {
-  position: relative;
-  overflow: hidden;
-}
-
-.match-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  animation: shimmer 2s infinite;
-  background: linear-gradient(
-    to right,
-    transparent,
-    rgba(255, 255, 255, 0.1),
-    transparent
-  );
-}
-
 .glass-effect {
   backdrop-filter: blur(24px);
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-@keyframes shimmer {
-  100% {
-    transform: translateX(100%);
-  }
+.grid-border {
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.category-task {
+  background: rgba(99, 102, 241, 0.1);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.category-study {
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.category-pr {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.category-bug {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.category-project {
+  background: rgba(234, 179, 8, 0.1);
+  border-color: rgba(234, 179, 8, 0.3);
 }
 
 button {
-  transition: transform 0.15s ease-out, box-shadow 0.3s ease-out;
+  transition: transform 0.15s ease-out;
 }
 
 button:hover {
-  transform: scale(1.05);
+  transform: translateY(-1px);
 }
 
 button:active {
-  transform: scale(0.95);
+  transform: scale(0.98);
 }
 
-.schedule-slot {
-  transition: background-color 0.2s ease-out, border-color 0.2s ease-out;
-}
-
-.schedule-slot:hover {
-  background-color: rgba(124, 77, 255, 0.1);
-  border-color: rgba(124, 77, 255, 0.3);
-}
-
-.schedule-slot.selected {
-  background-color: rgba(124, 77, 255, 0.2);
-  border-color: rgba(124, 77, 255, 0.5);
+.timer-circle {
+  stroke-dasharray: 283;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1s linear;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
 }

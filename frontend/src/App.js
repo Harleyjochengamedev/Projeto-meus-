@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import '@/App.css';
-import { BrowserRouter, Routes, Route, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Landing from './pages/Landing';
 import AuthCallback from './pages/AuthCallback';
 import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
-import Matches from './pages/Matches';
-import Chat from './pages/Chat';
+import Tasks from './pages/Tasks';
+import Timer from './pages/Timer';
+import Sprints from './pages/Sprints';
 import { Toaster } from './components/ui/sonner';
+import BottomNav from './components/BottomNav';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 export const API = `${BACKEND_URL}/api`;
@@ -26,13 +27,15 @@ function AppRouter() {
   }
   
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-      <Route path="/matches" element={<ProtectedRoute><Matches /></ProtectedRoute>} />
-      <Route path="/chat/:matchId" element={<ProtectedRoute><Chat /></ProtectedRoute>} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+        <Route path="/tasks" element={<ProtectedRoute><Tasks /></ProtectedRoute>} />
+        <Route path="/timer" element={<ProtectedRoute><Timer /></ProtectedRoute>} />
+        <Route path="/sprints" element={<ProtectedRoute><Sprints /></ProtectedRoute>} />
+      </Routes>
+    </>
   );
 }
 
@@ -75,12 +78,17 @@ function ProtectedRoute({ children }) {
     return null;
   }
 
-  return children;
+  return (
+    <>
+      {children}
+      <BottomNav />
+    </>
+  );
 }
 
 function App() {
   return (
-    <div className="App">
+    <div className="App pb-20 md:pb-0">
       <BrowserRouter>
         <AppRouter />
       </BrowserRouter>
