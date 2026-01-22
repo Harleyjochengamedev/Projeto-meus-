@@ -11,6 +11,7 @@ from typing import List, Optional, Dict, Any
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
+from enum import Enum
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -24,14 +25,38 @@ api_router = APIRouter(prefix="/api")
 
 EMERGENT_AUTH_URL = "https://demobackend.emergentagent.com/auth/v1/env/oauth/session-data"
 
+# Enums
+class TaskCategory(str, Enum):
+    TASK = "task"
+    STUDY = "study"
+    PR = "pr"
+    BUG = "bug"
+    PROJECT = "project"
+
+class TaskPriority(str, Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+class TaskStatus(str, Enum):
+    TODO = "todo"
+    IN_PROGRESS = "in_progress"
+    DONE = "done"
+
+class SprintStatus(str, Enum):
+    ACTIVE = "active"
+    COMPLETED = "completed"
+
+class TimeEntryType(str, Enum):
+    POMODORO = "pomodoro"
+    MANUAL = "manual"
+
 # Models
-class GamingProfile(BaseModel):
-    games: List[str] = []
-    platform: str = "PC"
-    style: str = "Casual"
-    communication: str = "Texto"
-    tolerance: int = 3
-    goal: str = "Diversão"
+class UserSettings(BaseModel):
+    pomodoro_duration: int = 25
+    short_break: int = 5
+    long_break: int = 15
+    pomodoros_until_long_break: int = 4
 
 class User(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -39,59 +64,78 @@ class User(BaseModel):
     email: str
     name: str
     picture: Optional[str] = None
-    gaming_profile: Optional[GamingProfile] = None
-    availability_schedule: Optional[Dict[str, List[str]]] = {}
+    settings: UserSettings = UserSettings()
     created_at: datetime
 
-class ProfileUpdate(BaseModel):
-    gaming_profile: GamingProfile
-    availability_schedule: Optional[Dict[str, List[str]]] = {}
+class TaskCreate(BaseModel):
+    title: str
+    description: Optional[str] = None
+    category: TaskCategory = TaskCategory.TASK
+    priority: TaskPriority = TaskPriority.MEDIUM
+    tags: List[str] = []
+    estimated_time: Optional[int] = None
+    sprint_id: Optional[str] = None
 
-class Match(BaseModel):
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    category: Optional[TaskCategory] = None
+    priority: Optional[TaskPriority] = None
+    status: Optional[TaskStatus] = None
+    tags: Optional[List[str]] = None
+    estimated_time: Optional[int] = None
+    actual_time: Optional[int] = None
+    sprint_id: Optional[str] = None
+
+class Task(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    match_id: str
-    user1_id: str
-    user2_id: str
-    compatibility_score: float
-    reasons: List[str]
-    status: str = "pending"
+    task_id: str
+    user_id: str
+    title: str
+    description: Optional[str] = None
+    category: TaskCategory
+    priority: TaskPriority
+    status: TaskStatus = TaskStatus.TODO
+    tags: List[str] = []
+    estimated_time: Optional[int] = None
+    actual_time: int = 0
+    sprint_id: Optional[str] = None
     created_at: datetime
+    updated_at: datetime
+    completed_at: Optional[datetime] = None
 
-class MatchAction(BaseModel):
-    match_id: str
-    action: str
+class SprintCreate(BaseModel):
+    name: str
+    goal: Optional[str] = None
+    start_date: datetime
+    end_date: datetime
 
-class ChatMessage(BaseModel):
-    message_id: str
-    sender_id: str
-    text: str
-    timestamp: datetime
-
-class Chat(BaseModel):
+class Sprint(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    chat_id: str
-    match_id: str
-    messages: List[ChatMessage] = []
+    sprint_id: str
+    user_id: str
+    name: str
+    goal: Optional[str] = None
+    start_date: datetime
+    end_date: datetime
+    status: SprintStatus = SprintStatus.ACTIVE
     created_at: datetime
 
-class MessageCreate(BaseModel):
-    text: str
+class TimeEntryCreate(BaseModel):
+    task_id: str
+    duration: int
+    entry_type: TimeEntryType = TimeEntryType.MANUAL
 
-class Rating(BaseModel):
+class TimeEntry(BaseModel):
     model_config = ConfigDict(extra="ignore")
-    rating_id: str
-    rater_id: str
-    rated_user_id: str
-    communication: int
-    respect: int
-    teamwork: int
+    entry_id: str
+    user_id: str
+    task_id: str
+    start_time: datetime
+    end_time: datetime
+    duration: int
+    entry_type: TimeEntryType
     created_at: datetime
-
-class RatingCreate(BaseModel):
-    rated_user_id: str
-    communication: int = Field(ge=1, le=5)
-    respect: int = Field(ge=1, le=5)
-    teamwork: int = Field(ge=1, le=5)
 
 # Helper Functions
 async def get_current_user(request: Request, authorization: Optional[str] = Header(None)) -> User:
@@ -125,64 +169,10 @@ async def get_current_user(request: Request, authorization: Optional[str] = Head
     
     return User(**user_doc)
 
-def calculate_compatibility_score(user1: User, user2: User) -> tuple[float, List[str]]:
-    score = 0.0
-    reasons = []
-    
-    profile1 = user1.gaming_profile
-    profile2 = user2.gaming_profile
-    
-    if not profile1 or not profile2:
-        return 0.0, ["Perfis incompletos"]
-    
-    # Style match (35%)
-    if profile1.style == profile2.style:
-        score += 35.0
-        reasons.append(f"Ambos jogam no estilo {profile1.style}")
-    
-    # Schedule overlap (25%)
-    schedule1 = user1.availability_schedule or {}
-    schedule2 = user2.availability_schedule or {}
-    overlap_count = 0
-    total_slots = 0
-    for day in schedule1:
-        if day in schedule2:
-            slots1 = set(schedule1[day])
-            slots2 = set(schedule2[day])
-            overlap = slots1.intersection(slots2)
-            overlap_count += len(overlap)
-            total_slots += max(len(slots1), len(slots2))
-    
-    if total_slots > 0:
-        schedule_score = (overlap_count / total_slots) * 25.0
-        score += schedule_score
-        if overlap_count > 0:
-            reasons.append(f"Horários compatíveis ({overlap_count} slots)")
-    
-    # Communication match (20%)
-    if profile1.communication == profile2.communication:
-        score += 20.0
-        reasons.append(f"Comunicação via {profile1.communication}")
-    
-    # Tolerance compatibility (20%)
-    tolerance_diff = abs(profile1.tolerance - profile2.tolerance)
-    tolerance_score = max(0, 20.0 - (tolerance_diff * 4))
-    score += tolerance_score
-    if tolerance_diff <= 1:
-        reasons.append("Nível de tolerância similar")
-    
-    return round(score, 1), reasons
-
-# Health Check
+# Auth Routes
 @api_router.get("/")
 async def root():
-    return {"message": "PlayMatch API", "status": "online"}
-
-# Auth Routes
-@api_router.get("/auth/google")
-async def auth_google(redirect_url: str):
-    emergent_auth_url = f"https://auth.emergentagent.com/?redirect={redirect_url}"
-    return {"auth_url": emergent_auth_url}
+    return {"message": "DevFlow API", "status": "online"}
 
 @api_router.post("/auth/callback")
 async def auth_callback(session_id: str, response: Response):
@@ -217,8 +207,7 @@ async def auth_callback(session_id: str, response: Response):
             "email": email,
             "name": name,
             "picture": picture,
-            "gaming_profile": None,
-            "availability_schedule": {},
+            "settings": UserSettings().model_dump(),
             "created_at": datetime.now(timezone.utc).isoformat()
         }
         await db.users.insert_one(user_doc)
@@ -260,272 +249,305 @@ async def logout(request: Request, response: Response):
     response.delete_cookie("session_token", path="/")
     return {"message": "Logged out successfully"}
 
-# Profile Routes
-@api_router.get("/profile", response_model=User)
-async def get_profile(request: Request, authorization: Optional[str] = Header(None)):
-    return await get_current_user(request, authorization)
+# Task Routes
+@api_router.get("/tasks", response_model=List[Task])
+async def get_tasks(
+    request: Request,
+    authorization: Optional[str] = Header(None),
+    status: Optional[str] = None,
+    category: Optional[str] = None,
+    sprint_id: Optional[str] = None
+):
+    user = await get_current_user(request, authorization)
+    
+    query = {"user_id": user.user_id}
+    if status:
+        query["status"] = status
+    if category:
+        query["category"] = category
+    if sprint_id:
+        query["sprint_id"] = sprint_id
+    
+    tasks_cursor = db.tasks.find(query, {"_id": 0}).sort("created_at", -1)
+    tasks = await tasks_cursor.to_list(length=1000)
+    
+    for task in tasks:
+        if isinstance(task.get("created_at"), str):
+            task["created_at"] = datetime.fromisoformat(task["created_at"])
+        if isinstance(task.get("updated_at"), str):
+            task["updated_at"] = datetime.fromisoformat(task["updated_at"])
+        if task.get("completed_at") and isinstance(task["completed_at"], str):
+            task["completed_at"] = datetime.fromisoformat(task["completed_at"])
+    
+    return [Task(**task) for task in tasks]
 
-@api_router.put("/profile")
-async def update_profile(
-    profile_update: ProfileUpdate,
+@api_router.post("/tasks", response_model=Task)
+async def create_task(
+    task_data: TaskCreate,
     request: Request,
     authorization: Optional[str] = Header(None)
 ):
     user = await get_current_user(request, authorization)
     
-    update_data = {
-        "gaming_profile": profile_update.gaming_profile.model_dump(),
-        "availability_schedule": profile_update.availability_schedule or {}
+    task_id = f"task_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    task_doc = {
+        "task_id": task_id,
+        "user_id": user.user_id,
+        **task_data.model_dump(),
+        "status": TaskStatus.TODO.value,
+        "actual_time": 0,
+        "created_at": now.isoformat(),
+        "updated_at": now.isoformat(),
+        "completed_at": None
     }
     
-    await db.users.update_one(
-        {"user_id": user.user_id},
+    await db.tasks.insert_one(task_doc)
+    
+    task_doc["created_at"] = now
+    task_doc["updated_at"] = now
+    return Task(**task_doc)
+
+@api_router.get("/tasks/{task_id}", response_model=Task)
+async def get_task(
+    task_id: str,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    user = await get_current_user(request, authorization)
+    
+    task_doc = await db.tasks.find_one({"task_id": task_id, "user_id": user.user_id}, {"_id": 0})
+    if not task_doc:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    if isinstance(task_doc.get("created_at"), str):
+        task_doc["created_at"] = datetime.fromisoformat(task_doc["created_at"])
+    if isinstance(task_doc.get("updated_at"), str):
+        task_doc["updated_at"] = datetime.fromisoformat(task_doc["updated_at"])
+    if task_doc.get("completed_at") and isinstance(task_doc["completed_at"], str):
+        task_doc["completed_at"] = datetime.fromisoformat(task_doc["completed_at"])
+    
+    return Task(**task_doc)
+
+@api_router.put("/tasks/{task_id}", response_model=Task)
+async def update_task(
+    task_id: str,
+    task_update: TaskUpdate,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    user = await get_current_user(request, authorization)
+    
+    task_doc = await db.tasks.find_one({"task_id": task_id, "user_id": user.user_id}, {"_id": 0})
+    if not task_doc:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    update_data = {k: v for k, v in task_update.model_dump().items() if v is not None}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    
+    if task_update.status == TaskStatus.DONE and task_doc.get("status") != TaskStatus.DONE.value:
+        update_data["completed_at"] = datetime.now(timezone.utc).isoformat()
+    
+    await db.tasks.update_one(
+        {"task_id": task_id},
         {"$set": update_data}
     )
     
-    updated_user = await db.users.find_one({"user_id": user.user_id}, {"_id": 0})
-    if isinstance(updated_user.get("created_at"), str):
-        updated_user["created_at"] = datetime.fromisoformat(updated_user["created_at"])
+    updated_task = await db.tasks.find_one({"task_id": task_id}, {"_id": 0})
+    if isinstance(updated_task.get("created_at"), str):
+        updated_task["created_at"] = datetime.fromisoformat(updated_task["created_at"])
+    if isinstance(updated_task.get("updated_at"), str):
+        updated_task["updated_at"] = datetime.fromisoformat(updated_task["updated_at"])
+    if updated_task.get("completed_at") and isinstance(updated_task["completed_at"], str):
+        updated_task["completed_at"] = datetime.fromisoformat(updated_task["completed_at"])
     
-    return User(**updated_user)
+    return Task(**updated_task)
 
-# Matchmaking Routes
-@api_router.get("/matches", response_model=List[Dict[str, Any]])
-async def get_matches(
-    request: Request,
-    authorization: Optional[str] = Header(None),
-    limit: int = 20
-):
-    current_user = await get_current_user(request, authorization)
-    
-    if not current_user.gaming_profile:
-        return []
-    
-    # Get other users with profiles
-    other_users_cursor = db.users.find(
-        {
-            "user_id": {"$ne": current_user.user_id},
-            "gaming_profile": {"$ne": None}
-        },
-        {"_id": 0}
-    ).limit(limit)
-    
-    other_users = await other_users_cursor.to_list(length=limit)
-    
-    matches = []
-    for user_doc in other_users:
-        if isinstance(user_doc.get("created_at"), str):
-            user_doc["created_at"] = datetime.fromisoformat(user_doc["created_at"])
-        
-        other_user = User(**user_doc)
-        score, reasons = calculate_compatibility_score(current_user, other_user)
-        
-        existing_match = await db.matches.find_one({
-            "$or": [
-                {"user1_id": current_user.user_id, "user2_id": other_user.user_id},
-                {"user1_id": other_user.user_id, "user2_id": current_user.user_id}
-            ]
-        }, {"_id": 0})
-        
-        if existing_match and existing_match.get("status") != "pending":
-            continue
-        
-        matches.append({
-            "user": other_user.model_dump(),
-            "compatibility_score": score,
-            "reasons": reasons,
-            "match_id": existing_match["match_id"] if existing_match else None
-        })
-    
-    matches.sort(key=lambda x: x["compatibility_score"], reverse=True)
-    return matches
-
-@api_router.post("/matches/action")
-async def match_action(
-    action_data: MatchAction,
+@api_router.delete("/tasks/{task_id}")
+async def delete_task(
+    task_id: str,
     request: Request,
     authorization: Optional[str] = Header(None)
 ):
-    current_user = await get_current_user(request, authorization)
-    match_id = action_data.match_id
-    action = action_data.action
+    user = await get_current_user(request, authorization)
     
-    if action not in ["like", "skip"]:
-        raise HTTPException(status_code=400, detail="Invalid action")
+    result = await db.tasks.delete_one({"task_id": task_id, "user_id": user.user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Task not found")
     
-    existing_match = await db.matches.find_one({"match_id": match_id}, {"_id": 0})
-    
-    if not existing_match:
-        raise HTTPException(status_code=404, detail="Match not found")
-    
-    if action == "skip":
-        await db.matches.update_one(
-            {"match_id": match_id},
-            {"$set": {"status": "rejected"}}
-        )
-        return {"message": "Match rejected"}
-    
-    if action == "like":
-        await db.matches.update_one(
-            {"match_id": match_id},
-            {"$set": {"status": "accepted"}}
-        )
-        
-        chat_id = f"chat_{uuid.uuid4().hex[:12]}"
-        chat_doc = {
-            "chat_id": chat_id,
-            "match_id": match_id,
-            "messages": [],
-            "created_at": datetime.now(timezone.utc).isoformat()
-        }
-        await db.chats.insert_one(chat_doc)
-        
-        return {"message": "Match accepted", "chat_id": chat_id}
+    return {"message": "Task deleted successfully"}
 
-@api_router.post("/matches/create")
-async def create_match(
-    other_user_id: str,
+# Sprint Routes
+@api_router.get("/sprints", response_model=List[Sprint])
+async def get_sprints(
     request: Request,
     authorization: Optional[str] = Header(None)
 ):
-    current_user = await get_current_user(request, authorization)
+    user = await get_current_user(request, authorization)
     
-    other_user_doc = await db.users.find_one({"user_id": other_user_id}, {"_id": 0})
-    if not other_user_doc:
-        raise HTTPException(status_code=404, detail="User not found")
+    sprints_cursor = db.sprints.find({"user_id": user.user_id}, {"_id": 0}).sort("created_at", -1)
+    sprints = await sprints_cursor.to_list(length=100)
     
-    if isinstance(other_user_doc.get("created_at"), str):
-        other_user_doc["created_at"] = datetime.fromisoformat(other_user_doc["created_at"])
+    for sprint in sprints:
+        if isinstance(sprint.get("created_at"), str):
+            sprint["created_at"] = datetime.fromisoformat(sprint["created_at"])
+        if isinstance(sprint.get("start_date"), str):
+            sprint["start_date"] = datetime.fromisoformat(sprint["start_date"])
+        if isinstance(sprint.get("end_date"), str):
+            sprint["end_date"] = datetime.fromisoformat(sprint["end_date"])
     
-    other_user = User(**other_user_doc)
-    score, reasons = calculate_compatibility_score(current_user, other_user)
+    return [Sprint(**sprint) for sprint in sprints]
+
+@api_router.post("/sprints", response_model=Sprint)
+async def create_sprint(
+    sprint_data: SprintCreate,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    user = await get_current_user(request, authorization)
     
-    match_id = f"match_{uuid.uuid4().hex[:12]}"
-    match_doc = {
-        "match_id": match_id,
-        "user1_id": current_user.user_id,
-        "user2_id": other_user_id,
-        "compatibility_score": score,
-        "reasons": reasons,
-        "status": "pending",
+    sprint_id = f"sprint_{uuid.uuid4().hex[:12]}"
+    now = datetime.now(timezone.utc)
+    
+    sprint_doc = {
+        "sprint_id": sprint_id,
+        "user_id": user.user_id,
+        **sprint_data.model_dump(),
+        "status": SprintStatus.ACTIVE.value,
+        "created_at": now.isoformat()
+    }
+    
+    if isinstance(sprint_doc["start_date"], datetime):
+        sprint_doc["start_date"] = sprint_doc["start_date"].isoformat()
+    if isinstance(sprint_doc["end_date"], datetime):
+        sprint_doc["end_date"] = sprint_doc["end_date"].isoformat()
+    
+    await db.sprints.insert_one(sprint_doc)
+    
+    sprint_doc["created_at"] = now
+    sprint_doc["start_date"] = sprint_data.start_date
+    sprint_doc["end_date"] = sprint_data.end_date
+    
+    return Sprint(**sprint_doc)
+
+# Time Entry Routes
+@api_router.post("/time-entries", response_model=TimeEntry)
+async def create_time_entry(
+    entry_data: TimeEntryCreate,
+    request: Request,
+    authorization: Optional[str] = Header(None)
+):
+    user = await get_current_user(request, authorization)
+    
+    task_doc = await db.tasks.find_one({"task_id": entry_data.task_id, "user_id": user.user_id}, {"_id": 0})
+    if not task_doc:
+        raise HTTPException(status_code=404, detail="Task not found")
+    
+    entry_id = f"entry_{uuid.uuid4().hex[:12]}"
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(minutes=entry_data.duration)
+    
+    entry_doc = {
+        "entry_id": entry_id,
+        "user_id": user.user_id,
+        "task_id": entry_data.task_id,
+        "start_time": start_time.isoformat(),
+        "end_time": end_time.isoformat(),
+        "duration": entry_data.duration,
+        "entry_type": entry_data.entry_type.value,
         "created_at": datetime.now(timezone.utc).isoformat()
     }
-    await db.matches.insert_one(match_doc)
     
-    return {"match_id": match_id, "compatibility_score": score, "reasons": reasons}
-
-# Chat Routes
-@api_router.get("/chats/{match_id}", response_model=Chat)
-async def get_chat(
-    match_id: str,
-    request: Request,
-    authorization: Optional[str] = Header(None)
-):
-    current_user = await get_current_user(request, authorization)
+    await db.time_entries.insert_one(entry_doc)
     
-    match_doc = await db.matches.find_one({"match_id": match_id}, {"_id": 0})
-    if not match_doc:
-        raise HTTPException(status_code=404, detail="Match not found")
-    
-    if current_user.user_id not in [match_doc["user1_id"], match_doc["user2_id"]]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    
-    chat_doc = await db.chats.find_one({"match_id": match_id}, {"_id": 0})
-    if not chat_doc:
-        raise HTTPException(status_code=404, detail="Chat not found")
-    
-    if isinstance(chat_doc.get("created_at"), str):
-        chat_doc["created_at"] = datetime.fromisoformat(chat_doc["created_at"])
-    
-    for msg in chat_doc.get("messages", []):
-        if isinstance(msg.get("timestamp"), str):
-            msg["timestamp"] = datetime.fromisoformat(msg["timestamp"])
-    
-    return Chat(**chat_doc)
-
-@api_router.post("/chats/{match_id}/message")
-async def send_message(
-    match_id: str,
-    message: MessageCreate,
-    request: Request,
-    authorization: Optional[str] = Header(None)
-):
-    current_user = await get_current_user(request, authorization)
-    
-    match_doc = await db.matches.find_one({"match_id": match_id}, {"_id": 0})
-    if not match_doc:
-        raise HTTPException(status_code=404, detail="Match not found")
-    
-    if current_user.user_id not in [match_doc["user1_id"], match_doc["user2_id"]]:
-        raise HTTPException(status_code=403, detail="Not authorized")
-    
-    message_id = f"msg_{uuid.uuid4().hex[:12]}"
-    new_message = {
-        "message_id": message_id,
-        "sender_id": current_user.user_id,
-        "text": message.text,
-        "timestamp": datetime.now(timezone.utc).isoformat()
-    }
-    
-    await db.chats.update_one(
-        {"match_id": match_id},
-        {"$push": {"messages": new_message}}
+    # Update task actual_time
+    await db.tasks.update_one(
+        {"task_id": entry_data.task_id},
+        {"$inc": {"actual_time": entry_data.duration}}
     )
     
-    return new_message
+    entry_doc["start_time"] = start_time
+    entry_doc["end_time"] = end_time
+    entry_doc["created_at"] = datetime.now(timezone.utc)
+    
+    return TimeEntry(**entry_doc)
 
-# Rating Routes
-@api_router.post("/ratings")
-async def create_rating(
-    rating_data: RatingCreate,
+@api_router.get("/time-entries")
+async def get_time_entries(
+    request: Request,
+    authorization: Optional[str] = Header(None),
+    date: Optional[str] = None
+):
+    user = await get_current_user(request, authorization)
+    
+    query = {"user_id": user.user_id}
+    
+    if date:
+        date_obj = datetime.fromisoformat(date).replace(tzinfo=timezone.utc)
+        start_of_day = date_obj.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day = start_of_day + timedelta(days=1)
+        query["start_time"] = {"$gte": start_of_day.isoformat(), "$lt": end_of_day.isoformat()}
+    
+    entries_cursor = db.time_entries.find(query, {"_id": 0}).sort("created_at", -1)
+    entries = await entries_cursor.to_list(length=1000)
+    
+    return entries
+
+# Dashboard Routes
+@api_router.get("/dashboard/overview")
+async def get_dashboard_overview(
     request: Request,
     authorization: Optional[str] = Header(None)
 ):
-    current_user = await get_current_user(request, authorization)
+    user = await get_current_user(request, authorization)
     
-    rated_user = await db.users.find_one({"user_id": rating_data.rated_user_id}, {"_id": 0})
-    if not rated_user:
-        raise HTTPException(status_code=404, detail="User not found")
+    today = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    tomorrow = today + timedelta(days=1)
     
-    rating_id = f"rating_{uuid.uuid4().hex[:12]}"
-    rating_doc = {
-        "rating_id": rating_id,
-        "rater_id": current_user.user_id,
-        "rated_user_id": rating_data.rated_user_id,
-        "communication": rating_data.communication,
-        "respect": rating_data.respect,
-        "teamwork": rating_data.teamwork,
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-    await db.ratings.insert_one(rating_doc)
+    # Tasks today (due today or in progress)
+    tasks_today = await db.tasks.count_documents({
+        "user_id": user.user_id,
+        "status": {"$ne": TaskStatus.DONE.value}
+    })
     
-    return {"rating_id": rating_id, "message": "Rating submitted"}
-
-@api_router.get("/ratings/{user_id}")
-async def get_user_ratings(user_id: str):
-    ratings_cursor = db.ratings.find({"rated_user_id": user_id}, {"_id": 0})
-    ratings = await ratings_cursor.to_list(length=100)
+    # Tasks completed today
+    tasks_completed_today = await db.tasks.count_documents({
+        "user_id": user.user_id,
+        "status": TaskStatus.DONE.value,
+        "completed_at": {"$gte": today.isoformat(), "$lt": tomorrow.isoformat()}
+    })
     
-    if not ratings:
-        return {
-            "user_id": user_id,
-            "average_communication": 0,
-            "average_respect": 0,
-            "average_teamwork": 0,
-            "total_ratings": 0
-        }
+    # Time entries today
+    entries_today_cursor = db.time_entries.find({
+        "user_id": user.user_id,
+        "start_time": {"$gte": today.isoformat(), "$lt": tomorrow.isoformat()}
+    }, {"_id": 0})
+    entries_today = await entries_today_cursor.to_list(length=1000)
+    total_time_today = sum(entry["duration"] for entry in entries_today)
     
-    total = len(ratings)
-    avg_comm = sum(r["communication"] for r in ratings) / total
-    avg_resp = sum(r["respect"] for r in ratings) / total
-    avg_team = sum(r["teamwork"] for r in ratings) / total
+    # Active sprints
+    active_sprints = await db.sprints.count_documents({
+        "user_id": user.user_id,
+        "status": SprintStatus.ACTIVE.value
+    })
+    
+    # Tasks by category
+    tasks_by_category = {}
+    for category in TaskCategory:
+        count = await db.tasks.count_documents({
+            "user_id": user.user_id,
+            "category": category.value,
+            "status": {"$ne": TaskStatus.DONE.value}
+        })
+        tasks_by_category[category.value] = count
     
     return {
-        "user_id": user_id,
-        "average_communication": round(avg_comm, 1),
-        "average_respect": round(avg_resp, 1),
-        "average_teamwork": round(avg_team, 1),
-        "total_ratings": total
+        "tasks_today": tasks_today,
+        "tasks_completed_today": tasks_completed_today,
+        "total_time_today": total_time_today,
+        "active_sprints": active_sprints,
+        "tasks_by_category": tasks_by_category
     }
 
 app.include_router(api_router)
